@@ -1,21 +1,21 @@
 <template name="game-board">
   <div class="gameboard-container">
     <div
-      v-for="(row, xKey) in board"
-      :key="xKey"
+      v-for="(row, yKey) in board"
+      :key="yKey"
       class="gameboard-row">
       <game-square
-        v-for="(item, yKey) in row"
-        :key="yKey"
+        v-for="(item, xKey) in row"
+        :key="xKey"
         :value="item"
-        class="gameboard-square" />
+        :is-attackable="attacks[yKey][xKey]"
+        class="gameboard-square"
+        @click.native="$root.$emit('player-played', { x: xKey, y: yKey })" />
     </div>
   </div>
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex';
-
 import GameSquare from '@/components/GameSquare';
 
 export default {
@@ -23,18 +23,15 @@ export default {
   components: {
     GameSquare,
   },
-  mounted() {
-    this.initBoard();
-  },
-  methods: {
-    ...mapActions([
-      'initBoard',
-    ]),
-  },
-  computed: {
-    ...mapGetters([
-      'board',
-    ]),
+  props: {
+    board: {
+      type: Array,
+      required: true,
+    },
+    attacks: {
+      type: Array,
+      required: true,
+    },
   },
 };
 </script>

@@ -8,9 +8,9 @@ Vue.use(Vuex);
 
 const state = {
   board: [],
+  attacks: [],
+  player: 1,
 };
-
-console.log(getters);
 
 export default new Vuex.Store({
   state,

@@ -10,15 +10,22 @@ export default {
       type: Number,
       required: true,
     },
+    isAttackable: {
+      type: Number,
+      required: true,
+    },
   },
   computed: {
     squareState() {
       let state = 'empty';
       if (this.value === 1) {
-        state = 'white';
+        state = 'black';
       }
       if (this.value === 2) {
-        state = 'black';
+        state = 'white';
+      }
+      if (this.isAttackable === 3) {
+        state = 'playable';
       }
       return state;
     },

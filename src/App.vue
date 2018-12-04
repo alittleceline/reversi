@@ -1,10 +1,14 @@
 <template>
   <div id="app">
     <img src="./assets/logo.png">
+    <h1>Reversi, player {{ currentPlayer }}'s turn</h1>
     <p>
-      <button class="btn" @click="initBoard">Reset board</button>
+      <button class="btn" @click="initGame(), listPossibleMoves(myBoard, 1, 2)">Reset board</button>
+      <button class="btn" @click="nextPlayer()">Next</button>
     </p>
-    <game-board />
+    <game-board
+      :board="myBoard"
+      :attacks="myAttacks" />
   </div>
 </template>
 
@@ -12,24 +16,62 @@
 import { mapActions, mapGetters } from 'vuex';
 
 import GameBoard from '@/components/GameBoard';
+import { cloneBoard } from './helpers';
+
+const P1 = 1;
+const P2 = 2;
 
 export default {
   name: 'App',
   components: {
     GameBoard,
   },
+  created() {
+    this.initGame(P1);
+  },
   mounted() {
-    this.initBoard();
+    this.$root.$on('player-played', (payload) => {
+      this.dropPlayerPiece(this.currentPlayer, payload.x, payload.y);
+    });
+  },
+  beforeDestroy() {
+    this.$root.$off('player-played');
   },
   methods: {
     ...mapActions([
-      'initBoard',
+      'initGame',
+      'updateBoard',
+      'updateAttacks',
+      'updateNextPlayer',
     ]),
+    dropPlayerPiece(player, pieceX, pieceY) {
+      const newBoard = cloneBoard(this.board);
+      newBoard[pieceY][pieceX] = player;
+      this.updateBoard(newBoard);
+      this.nextPlayer();
+    },
+    nextPlayer() {
+      const player = this.currentPlayer;
+      const next = player === P1 ? P2 : P1;
+      this.updateNextPlayer(next);
+    },
+
   },
   computed: {
     ...mapGetters([
       'board',
+      'attacks',
+      'player',
     ]),
+    myBoard() {
+      return cloneBoard(this.board);
+    },
+    myAttacks() {
+      return cloneBoard(this.attacks);
+    },
+    currentPlayer() {
+      return this.player;
+    },
   },
 };
 </script>
