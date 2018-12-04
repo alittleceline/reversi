@@ -14,7 +14,7 @@ const getNearbyPieces = (board, positionX, positionY, opponent) => {
 
       // as lons as we're in board's limits
       if ((nearbyX >= 0 && nearbyX < board.length) && (nearbyY >= 0 && nearbyY < board.length)) {
-        if (board[nearbyX][nearbyY] === opponent) {
+        if (board[nearbyY][nearbyX] === opponent) {
           availableSquare = {
             x: positionX,
             y: positionY,

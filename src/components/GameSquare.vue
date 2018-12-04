@@ -18,14 +18,14 @@ export default {
   computed: {
     squareState() {
       let state = 'empty';
+      if (this.isAttackable === 3) {
+        state = 'playable';
+      }
       if (this.value === 1) {
         state = 'black';
       }
       if (this.value === 2) {
         state = 'white';
-      }
-      if (this.isAttackable === 3) {
-        state = 'playable';
       }
       return state;
     },
