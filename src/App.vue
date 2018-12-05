@@ -3,7 +3,7 @@
     <img src="./assets/logo.png">
     <h1>Reversi, player {{ currentPlayer }}'s turn</h1>
     <p>
-      <button class="btn" @click="initGame(), listPossibleMoves(myBoard, 1, 2)">Reset board</button>
+      <button class="btn" @click="initGame()">Reset board</button>
       <button class="btn" @click="nextPlayer()">Next</button>
     </p>
     <game-board
@@ -16,12 +16,15 @@
 import { mapActions, mapGetters } from 'vuex';
 
 import GameBoard from '@/components/GameBoard';
-import { cloneBoard, getNearbyPieces } from './helpers';
+import { cloneBoard } from './helpers';
 
+const BOARDSIZE = 8;
 const EMPTY = 0;
 const P1 = 1;
 const P2 = 2;
 const PLAYABLE = 3;
+const DX = [-1, 0, 1, -1, 1, -1, 0, 1];
+const DY = [-1, -1, -1, 0, 0, 1, 1, 1];
 
 export default {
   name: 'App',
@@ -30,7 +33,7 @@ export default {
   },
   created() {
     this.initGame(P1);
-    this.listPossibleMoves(this.myAttacks, P1, P2);
+    this.listValidMoves(this.board, this.player);
   },
   mounted() {
     this.$root.$on('player-played', (payload) => {
@@ -47,73 +50,45 @@ export default {
       'updateAttacks',
       'updateNextPlayer',
     ]),
-    listPossibleMoves(board, player, opponent) {
-      const movesBoard = cloneBoard(board);
-      let pos = [];
-      let moveDirectionList = [];
-      for (let y = 0; y < board.length; y += 1) {
-        for (let x = 0; x < board.length; x += 1) {
-          // if square is empty
-          if (board[y][x] === EMPTY) {
-            // look for opponent pieces around
-            pos = getNearbyPieces(board, x, y, opponent) || null;
-            if (pos.length > 0) {
-              moveDirectionList = pos.map(item => this.getDirectionForMove(item));
-              const playablePos = moveDirectionList.length > 0 ? this.checkLineForMove(board, moveDirectionList, player) : null;
-            }
-            if (moveDirectionList.length > 0) {
-              console.log('moveDirectionList', moveDirectionList);
-              //   movesBoard[pos.y][pos.x] = PLAYABLE;
-            }
+    checkValidMove(board, player, squareCoord) {
+      /** Returns true if the specified player can play a piece at the specified coordinate. */
+
+      // look in each direction from this piece; if we see the other piece color and then one of our
+      // own, then this is a legal move
+      for (let i = 0; i < DX.length; i += 1) {
+        let sawOpponent = false;
+        let x = squareCoord.x;
+        let y = squareCoord.y;
+        for (let d = 0; d < BOARDSIZE; d += 1) {
+          x += DX[i];
+          y += DY[i];
+          // stop when we end up off the board
+          if (x < 0 || x > BOARDSIZE || y < 0 || y > BOARDSIZE) {
+            break;
+          }
+          const currentSquare = board[y][x];
+          if (currentSquare === 0) {
+            break;
+          } else if (currentSquare !== player) {
+            sawOpponent = true;
+          } else if (sawOpponent) return 1;
+          else break;
+        }
+      }
+      return 0;
+    },
+    listValidMoves(board, player) {
+      /** Returns all legal plays for the player with the specified color. */
+      const movesList = cloneBoard(this.attacks);
+      for (let y = 0; y < BOARDSIZE; y += 1) {
+        for (let x = 0; x < BOARDSIZE; x += 1) {
+          const square = { x, y };
+          if (movesList[square.y][square.x] === EMPTY && this.checkValidMove(board, player, square)) {
+            movesList[square.y][square.x] = 1;
           }
         }
       }
-      this.updateAttacks(movesBoard);
-    },
-    getDirectionForMove(item) {
-      const nextY = item.neighborY - item.y;
-      const nextX = item.neighborX - item.x;
-      let move = item;
-      // tl : top-left
-      if (nextY === -1 && nextX === -1) { move.direction = 'tl'; }
-      // tt : top
-      if (nextY === -1 && nextX === 0) { move.direction = 'tt'; }
-      // tr : top-right
-      if (nextY === -1 && nextX === 1) { move.direction = 'tr'; }
-      // rr : right
-      if (nextY === 0 && nextX === 1) { move.direction = 'rr'; }
-      // br : bottom-right
-      if (nextY === 1 && nextX === 1) { move.direction = 'br'; }
-      // bb : bottom
-      if (nextY === 1 && nextX === 0) { move.direction = 'bb'; }
-      // bl : bottom-left
-      if (nextY === 1 && nextX === -1) { move.direction = 'bl'; }
-      // ll : left
-      if (nextY === 0 && nextX === -1) { move.direction = 'll'; }
-      return move;
-    },
-    checkLineForMove(board, moves, player) {
-      let checkedSquare;
-      const horizontalMoves = moves.filter(move => {
-        return move.direction === 'll' || move.direction === 'rr';
-        // // Direction check : forward or backwards
-        // const increment = (dir === 'll' || dir === 'tt') ? -1 : 1;
-        // const nbOfSquares = board.length - (position.x + 1);
-        // // Horizontal check
-        // if (dir === 'rr' || dir === 'll') {
-        //   for (let i = 0; i < nbOfSquares; i += 1) {
-        //     const postionBeingChecked = position.neighborX + (i * increment);
-        //     if (board[position.x][postionBeingChecked] === player) {
-        //       checkedSquare = {
-        //         x: position.x,
-        //         y: position.y,
-        //       };
-        //     }
-        //   }
-        // }
-      });
-      console.log('horizontalMoves', horizontalMoves);
-      return checkedSquare;
+      this.updateAttacks(movesList);
     },
     dropPlayerPiece(player, pieceX, pieceY) {
       const newBoard = cloneBoard(this.board);
@@ -130,7 +105,6 @@ export default {
       const next = player === P1 ? P2 : P1;
       this.updateNextPlayer(next);
       console.table(this.board);
-      this.listPossibleMoves(this.board, next, player);
     },
 
   },

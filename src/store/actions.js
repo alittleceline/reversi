@@ -13,10 +13,20 @@ const initialBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0]];
 
+const attackBoard = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 1, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0]];
+
 export const initGame = ({ commit }, payload) => {
   console.log('initGame');
   commit(types.INIT_BOARD, initialBoard);
-  commit(types.INIT_ATTACKS, initialBoard);
+  commit(types.INIT_ATTACKS, attackBoard);
   commit(types.SET_PLAYER_TURN, payload);
 };
 
