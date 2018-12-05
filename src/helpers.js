@@ -4,7 +4,7 @@ const cloneBoard = currentBoard => currentBoard.map(arr => arr.slice());
 
 // List empty squares near players' pieces
 const getNearbyPieces = (board, positionX, positionY, opponent) => {
-  let availableSquare;
+  const availableSquare = [];
 
   // check each square around current position
   for (let nextY = -1; nextY < 2; nextY += 1) {
@@ -15,12 +15,12 @@ const getNearbyPieces = (board, positionX, positionY, opponent) => {
       // as lons as we're in board's limits
       if ((nearbyX >= 0 && nearbyX < board.length) && (nearbyY >= 0 && nearbyY < board.length)) {
         if (board[nearbyY][nearbyX] === opponent) {
-          availableSquare = {
+          availableSquare.push({
             x: positionX,
             y: positionY,
             neighborX: nearbyX,
             neighborY: nearbyY,
-          };
+          });
         }
       }
     }

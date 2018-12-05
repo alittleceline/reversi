@@ -49,63 +49,70 @@ export default {
     ]),
     listPossibleMoves(board, player, opponent) {
       const movesBoard = cloneBoard(board);
+      let pos = [];
+      let moveDirectionList = [];
       for (let y = 0; y < board.length; y += 1) {
         for (let x = 0; x < board.length; x += 1) {
           // if square is empty
           if (board[y][x] === EMPTY) {
             // look for opponent pieces around
-            const pos = getNearbyPieces(board, x, y, opponent) || null;
-            const moveDirection = pos ? this.getDirectionForMove(pos.x, pos.y, (pos.neighborX - pos.x), (pos.neighborY - pos.y)) : null;
-            if (pos) {
-              console.log('pos', pos);
-              console.log('direction', moveDirection);
+            pos = getNearbyPieces(board, x, y, opponent) || null;
+            if (pos.length > 0) {
+              moveDirectionList = pos.map(item => this.getDirectionForMove(item));
+              const playablePos = moveDirectionList.length > 0 ? this.checkLineForMove(board, moveDirectionList, player) : null;
             }
-            const playablePos = pos ? this.checkLineForMove(board, pos, moveDirection, player) : null;
-            if (pos) {
-              movesBoard[pos.y][pos.x] = PLAYABLE;
+            if (moveDirectionList.length > 0) {
+              console.log('moveDirectionList', moveDirectionList);
+              //   movesBoard[pos.y][pos.x] = PLAYABLE;
             }
           }
         }
       }
       this.updateAttacks(movesBoard);
     },
-    getDirectionForMove(positionX, positionY, nextX, nextY) {
-      let direction = [];
+    getDirectionForMove(item) {
+      const nextY = item.neighborY - item.y;
+      const nextX = item.neighborX - item.x;
+      let move = item;
       // tl : top-left
-      if (nextY === -1 && nextX === -1) { direction.push('tl'); }
+      if (nextY === -1 && nextX === -1) { move.direction = 'tl'; }
       // tt : top
-      if (nextY === -1 && nextX === 0) { direction.push('tt'); }
+      if (nextY === -1 && nextX === 0) { move.direction = 'tt'; }
       // tr : top-right
-      if (nextY === -1 && nextX === 1) { direction.push('tr'); }
+      if (nextY === -1 && nextX === 1) { move.direction = 'tr'; }
       // rr : right
-      if (nextY === 0 && nextX === 1) { direction.push('rr'); }
+      if (nextY === 0 && nextX === 1) { move.direction = 'rr'; }
       // br : bottom-right
-      if (nextY === 1 && nextX === 1) { direction.push('br'); }
+      if (nextY === 1 && nextX === 1) { move.direction = 'br'; }
       // bb : bottom
-      if (nextY === 1 && nextX === 0) { direction.push('bb'); }
+      if (nextY === 1 && nextX === 0) { move.direction = 'bb'; }
       // bl : bottom-left
-      if (nextY === 1 && nextX === -1) { direction.push('bl'); }
+      if (nextY === 1 && nextX === -1) { move.direction = 'bl'; }
       // ll : left
-      if (nextY === 0 && nextX === -1) { direction.push('ll'); }
-      return direction;
+      if (nextY === 0 && nextX === -1) { move.direction = 'll'; }
+      return move;
     },
-    checkLineForMove(board, position, direction, player) {
-      // Direction check : forward or backwards
-      const increment = (direction === 'll' || direction === 'tt') ? -1 : 1;
-      const nbOfSquares = board.length - position.neighborX + 1;
+    checkLineForMove(board, moves, player) {
       let checkedSquare;
-      // Horizontal check
-      if (direction === 'rr' || direction === 'll') {
-        for (let i = 0; i < nbOfSquares; i += 1) {
-          const postionBeingChecked = position.neighborX + (i * increment);
-          if (board[position.neighborY][postionBeingChecked] === player) {
-            checkedSquare = {
-              x: position.x,
-              y: position.y,
-            };
-          }
-        }
-      }
+      const horizontalMoves = moves.filter(move => {
+        return move.direction === 'll' || move.direction === 'rr';
+        // // Direction check : forward or backwards
+        // const increment = (dir === 'll' || dir === 'tt') ? -1 : 1;
+        // const nbOfSquares = board.length - (position.x + 1);
+        // // Horizontal check
+        // if (dir === 'rr' || dir === 'll') {
+        //   for (let i = 0; i < nbOfSquares; i += 1) {
+        //     const postionBeingChecked = position.neighborX + (i * increment);
+        //     if (board[position.x][postionBeingChecked] === player) {
+        //       checkedSquare = {
+        //         x: position.x,
+        //         y: position.y,
+        //       };
+        //     }
+        //   }
+        // }
+      });
+      console.log('horizontalMoves', horizontalMoves);
       return checkedSquare;
     },
     dropPlayerPiece(player, pieceX, pieceY) {
