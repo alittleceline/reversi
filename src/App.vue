@@ -6,6 +6,7 @@
       <button class="btn" @click="initGame()">Reset board</button>
       <button class="btn" @click="nextPlayer()">Next</button>
     </p>
+    {{ attacks }}
     <game-board
       :board="myBoard"
       :attacks="myAttacks" />
@@ -33,15 +34,15 @@ export default {
   },
   created() {
     this.initGame(P1);
-    this.listValidMoves(this.board, this.player);
+    this.listValidMoves(this.myBoard, this.player);
   },
   mounted() {
-    this.$root.$on('player-played', (payload) => {
-      this.dropPlayerPiece(this.currentPlayer, payload.x, payload.y);
-    });
+    // this.$root.$on('player-played', (payload) => {
+    //   this.dropPlayerPiece(this.currentPlayer, payload.x, payload.y);
+    // });
   },
   beforeDestroy() {
-    this.$root.$off('player-played');
+    // this.$root.$off('player-played');
   },
   methods: {
     ...mapActions([
@@ -52,26 +53,27 @@ export default {
     ]),
     checkValidMove(board, player, squareCoord) {
       /** Returns true if the specified player can play a piece at the specified coordinate. */
-
+      console.table(board);
       // look in each direction from this piece; if we see the other piece color and then one of our
       // own, then this is a legal move
       for (let i = 0; i < DX.length; i += 1) {
         let sawOpponent = false;
         let x = squareCoord.x;
         let y = squareCoord.y;
+        let currentSquare = 0;
         for (let d = 0; d < BOARDSIZE; d += 1) {
           x += DX[i];
           y += DY[i];
           // stop when we end up off the board
-          if (x < 0 || x > BOARDSIZE || y < 0 || y > BOARDSIZE) {
+          if (x < 0 || x >= BOARDSIZE || y < 0 || y >= BOARDSIZE) {
             break;
           }
-          const currentSquare = board[y][x];
+          currentSquare = board[y][x];
           if (currentSquare === 0) {
             break;
           } else if (currentSquare !== player) {
             sawOpponent = true;
-          } else if (sawOpponent) return 1;
+          } else if (sawOpponent) return PLAYABLE;
           else break;
         }
       }
@@ -83,6 +85,7 @@ export default {
       for (let y = 0; y < BOARDSIZE; y += 1) {
         for (let x = 0; x < BOARDSIZE; x += 1) {
           const square = { x, y };
+          console.log('square', square);
           if (movesList[square.y][square.x] === EMPTY && this.checkValidMove(board, player, square)) {
             movesList[square.y][square.x] = 1;
           }
@@ -90,16 +93,16 @@ export default {
       }
       this.updateAttacks(movesList);
     },
-    dropPlayerPiece(player, pieceX, pieceY) {
-      const newBoard = cloneBoard(this.board);
-      const newAttacks = cloneBoard(this.attacks);
-      if (newAttacks[pieceY][pieceX] === PLAYABLE) {
-        newBoard[pieceY][pieceX] = player;
-        this.updateBoard(newBoard);
-        this.updateAttacks(newBoard);
-        this.nextPlayer();
-      }
-    },
+    // dropPlayerPiece(player, pieceX, pieceY) {
+    //   const newBoard = cloneBoard(this.board);
+    //   const newAttacks = cloneBoard(this.attacks);
+    //   if (newAttacks[pieceY][pieceX] === PLAYABLE) {
+    //     newBoard[pieceY][pieceX] = player;
+    //     this.updateBoard(newBoard);
+    //     this.updateAttacks(newBoard);
+    //     this.nextPlayer();
+    //   }
+    // },
     nextPlayer() {
       const player = this.currentPlayer;
       const next = player === P1 ? P2 : P1;
