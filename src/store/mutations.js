@@ -21,5 +21,4 @@ export default {
     state.attacks = payload;
     console.log('UPDATE_ATTACKS');
   },
-
 };

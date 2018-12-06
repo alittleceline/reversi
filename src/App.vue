@@ -1,12 +1,24 @@
 <template>
   <div id="app">
     <img src="./assets/logo.png">
-    <h1>Reversi, player {{ currentPlayer }}'s turn</h1>
+    <h1>Reversi, {{ currentPlayersColor }} player's turn</h1>
+    <p
+      v-if="gameStopped"
+      v-text="'Game over! Restart?'" />
+    <p
+      v-if="!gameStopped && impossibleTurns"
+      v-text="'No moves available, please pass.'" />
     <p>
-      <button class="btn" @click="initGame()">Reset board</button>
-      <button class="btn" @click="nextPlayer()">Next</button>
+      <button
+        v-text="'Restart game'"
+        class="btn"
+        @click="restart()" />
+      <button
+        v-if="!gameStopped && impossibleTurns"
+        v-text="'Pass'"
+        class="btn"
+        @click="nextPlayer()" />
     </p>
-    {{ attacks }}
     <game-board
       :board="myBoard"
       :attacks="myAttacks" />
@@ -17,32 +29,39 @@
 import { mapActions, mapGetters } from 'vuex';
 
 import GameBoard from '@/components/GameBoard';
-import { cloneBoard } from './helpers';
-
-const BOARDSIZE = 8;
-const EMPTY = 0;
-const P1 = 1;
-const P2 = 2;
-const PLAYABLE = 3;
-const DX = [-1, 0, 1, -1, 1, -1, 0, 1];
-const DY = [-1, -1, -1, 0, 0, 1, 1, 1];
+import {
+  BOARDSIZE,
+  EMPTY,
+  PLAYABLE,
+  P1,
+  P2,
+  cloneBoard,
+  getEmptyBoard,
+  checkValidMove,
+  applyMove,
+} from './helpers';
 
 export default {
   name: 'App',
+  data() {
+    return {
+      impossibleTurns: 0,
+      gameStopped: false,
+    };
+  },
   components: {
     GameBoard,
   },
   created() {
-    this.initGame(P1);
-    this.listValidMoves(this.myBoard, this.player);
+    this.restart();
   },
   mounted() {
-    // this.$root.$on('player-played', (payload) => {
-    //   this.dropPlayerPiece(this.currentPlayer, payload.x, payload.y);
-    // });
+    this.$root.$on('player-played', (payload) => {
+      this.play(this.myBoard, this.currentPlayer, payload);
+    });
   },
   beforeDestroy() {
-    // this.$root.$off('player-played');
+    this.$root.$off('player-played');
   },
   methods: {
     ...mapActions([
@@ -51,63 +70,51 @@ export default {
       'updateAttacks',
       'updateNextPlayer',
     ]),
-    checkValidMove(board, player, squareCoord) {
-      /** Returns true if the specified player can play a piece at the specified coordinate. */
-      console.table(board);
-      // look in each direction from this piece; if we see the other piece color and then one of our
-      // own, then this is a legal move
-      for (let i = 0; i < DX.length; i += 1) {
-        let sawOpponent = false;
-        let x = squareCoord.x;
-        let y = squareCoord.y;
-        let currentSquare = 0;
-        for (let d = 0; d < BOARDSIZE; d += 1) {
-          x += DX[i];
-          y += DY[i];
-          // stop when we end up off the board
-          if (x < 0 || x >= BOARDSIZE || y < 0 || y >= BOARDSIZE) {
-            break;
-          }
-          currentSquare = board[y][x];
-          if (currentSquare === 0) {
-            break;
-          } else if (currentSquare !== player) {
-            sawOpponent = true;
-          } else if (sawOpponent) return PLAYABLE;
-          else break;
-        }
-      }
-      return 0;
+    restart() {
+      this.initGame();
+      const list = this.listValidMoves(this.myBoard, this.player);
+      this.updateAttacks(list.validMoves);
     },
     listValidMoves(board, player) {
-      /** Returns all legal plays for the player with the specified color. */
-      const movesList = cloneBoard(this.attacks);
+      // Returns all legal plays for the player with the specified color
+      let hasValidMoves = false;
+      const validMoves = getEmptyBoard();
       for (let y = 0; y < BOARDSIZE; y += 1) {
         for (let x = 0; x < BOARDSIZE; x += 1) {
           const square = { x, y };
-          console.log('square', square);
-          if (movesList[square.y][square.x] === EMPTY && this.checkValidMove(board, player, square)) {
-            movesList[square.y][square.x] = 1;
+          if (validMoves[square.y][square.x] === EMPTY && checkValidMove(board, player, square)) {
+            validMoves[square.y][square.x] = 3;
+            hasValidMoves = true;
           }
         }
       }
-      this.updateAttacks(movesList);
+      return { hasValidMoves, validMoves };
     },
-    // dropPlayerPiece(player, pieceX, pieceY) {
-    //   const newBoard = cloneBoard(this.board);
-    //   const newAttacks = cloneBoard(this.attacks);
-    //   if (newAttacks[pieceY][pieceX] === PLAYABLE) {
-    //     newBoard[pieceY][pieceX] = player;
-    //     this.updateBoard(newBoard);
-    //     this.updateAttacks(newBoard);
-    //     this.nextPlayer();
-    //   }
-    // },
+    play(board, player, coord) {
+      const newAttacks = cloneBoard(this.myAttacks);
+      // only allow click on playable squares
+      if (newAttacks[coord.y][coord.x] === PLAYABLE) {
+        const attack = applyMove(board, player, coord);
+        this.updateBoard(attack);
+        const next = this.player === P1 ? P2 : P1;
+        // if valid moves are available, player can play, switch to next player's turn
+        const list = this.listValidMoves(attack, next);
+        if (list.hasValidMoves && this.impossibleTurns < 2) {
+          this.updateAttacks(list.validMoves);
+          this.impossibleTurns = 0;
+          this.nextPlayer();
+        // if player can not play: remember it!
+        } else if (!list.hasValidMoves && this.impossibleTurns < 2) {
+          this.impossibleTurns += 1;
+        // if next player can not play either: game over!
+        } else {
+          this.gameStopped = true;
+        }
+      }
+    },
     nextPlayer() {
-      const player = this.currentPlayer;
-      const next = player === P1 ? P2 : P1;
+      const next = this.player === P1 ? P2 : P1;
       this.updateNextPlayer(next);
-      console.table(this.board);
     },
 
   },
@@ -125,6 +132,9 @@ export default {
     },
     currentPlayer() {
       return this.player;
+    },
+    currentPlayersColor() {
+      return this.currentPlayer === P1 ? 'black' : 'white';
     },
   },
 };

@@ -18,7 +18,7 @@ export default {
   computed: {
     squareState() {
       let state = 'empty';
-      if (this.isAttackable === 1) {
+      if (this.isAttackable === 3) {
         state = 'playable';
       }
       if (this.value === 1) {
