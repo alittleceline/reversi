@@ -9,9 +9,9 @@
     "start": "npm run dev",
     "lint": "eslint --ext .js,.vue src",
     "build": "node build/build.js",
-    "publish": "yarn build && yarn publish:move && yarn publish:commit",
-    "publish:move": "rm -rf docs/* && mv dist/* docs/",
-    "publish:commit": "git add . && git commit -m 'New publication' && git push origin master"
+    "mep": "yarn build && yarn mep:move && yarn mep:commit",
+    "mep:move": "rm -rf docs/* && mv dist/* docs/",
+    "mep:commit": "git add . && git commit -m 'New publication' && git push origin master"
   },
   "dependencies": {
     "vue": "^2.5.2",
