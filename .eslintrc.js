@@ -47,7 +47,7 @@ module.exports = {
     'import/no-unresolved': 0,
     'import/prefer-default-export': 0,
     'max-len': 0,
-    'no-console': "off",
+    'no-console': "on",
     // allow debugger during development
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
   }

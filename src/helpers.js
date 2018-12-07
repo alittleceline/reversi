@@ -11,17 +11,6 @@ const DY = [-1, -1, -1, 0, 0, 1, 1, 1];
 // Create a deep copy of an Array (instead of a simple reference)
 const cloneBoard = currentBoard => currentBoard.map(arr => arr.slice());
 
-// Assign a 'reset' array for possible moves
-const getEmptyBoard = () => ([
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0]]);
-
 // Return PLAYABLE if the specified player can play a piece at the specified coordinate
 const checkValidMove = (board, player, squareCoord) => {
   // look in each direction from here; if we see the opponent color and then player's color
@@ -66,6 +55,8 @@ const applyMove = (board, player, squareCoord) => {
       x += DX[i];
       // stop when we end up off the board
       if (x < 0 || x >= BOARDSIZE || y < 0 || y >= BOARDSIZE) {
+        // Reset toFlip to just click coords
+        toFlip = [{ y: squareCoord.y, x: squareCoord.x }];
         break;
       }
       const piece = board[y][x];
@@ -98,5 +89,4 @@ export {
   cloneBoard,
   checkValidMove,
   applyMove,
-  getEmptyBoard,
 };
