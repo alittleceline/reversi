@@ -26,23 +26,19 @@ const attackBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0]];
 
 export const initGame = ({ commit }) => {
-  console.log('initGame');
   commit(types.INIT_BOARD, initialBoard);
   commit(types.INIT_ATTACKS, attackBoard);
   commit(types.SET_PLAYER_TURN, P1);
 };
 
 export const updateNextPlayer = ({ commit }, payload) => {
-  console.log('updateNextPlayer', payload);
   commit(types.SET_PLAYER_TURN, payload);
 };
 
 export const updateBoard = ({ commit }, payload) => {
-  console.log('updateBoard');
   commit(types.UPDATE_BOARD, payload);
 };
 
 export const updateAttacks = ({ commit }, payload) => {
-  console.log('updateAttacks');
   commit(types.UPDATE_ATTACKS, payload);
 };

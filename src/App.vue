@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
-    <h1>Reversi, {{ currentPlayersColor }} player's turn</h1>
+    <h1 v-text="'Reversi'" />
+    <h2>{{ currentPlayersColor }} player's turn</h2>
     <p
       v-if="gameStopped"
       v-text="'Game over! Restart?'" />
@@ -19,6 +19,7 @@
         class="btn"
         @click="nextPlayer()" />
     </p>
+    <p> black pieces: {{ playerPiecesCounter(playerOne) }}, white pieces: {{ playerPiecesCounter(playerTwo) }}</p>
     <game-board
       :board="myBoard"
       :attacks="myAttacks" />
@@ -95,6 +96,7 @@ export default {
       // only allow click on playable squares
       if (newAttacks[coord.y][coord.x] === PLAYABLE) {
         const attack = applyMove(board, player, coord);
+        console.log('applyMove', attack);
         this.updateBoard(attack);
         const next = this.player === P1 ? P2 : P1;
         // if valid moves are available, player can play, switch to next player's turn
@@ -116,6 +118,9 @@ export default {
       const next = this.player === P1 ? P2 : P1;
       this.updateNextPlayer(next);
     },
+    playerPiecesCounter(player) {
+      return this.myBoard.reduce((acc, line) => acc + line.filter(item => item === player).length, 0);
+    },
 
   },
   computed: {
@@ -124,6 +129,12 @@ export default {
       'attacks',
       'player',
     ]),
+    playerOne() {
+      return P1;
+    },
+    playerTwo() {
+      return P2;
+    },
     myBoard() {
       return cloneBoard(this.board);
     },
