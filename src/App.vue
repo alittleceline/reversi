@@ -9,7 +9,7 @@
       <p
         v-if="!gameStopped && impossibleTurns"
         v-text="'No moves available, please pass.'" />
-      <div>
+      <div class="btn-container">
         <button
           v-text="'Restart game'"
           class="btn"
@@ -24,7 +24,13 @@
       </div>
     </section>
     <p> black pieces: {{ playerPiecesCounter(playerOne) }}, white pieces: {{ playerPiecesCounter(playerTwo) }}</p>
+    <p>
+      <input type="checkbox" id="checkbox" v-model="showHints">
+      <label for="checkbox">Show hints</label>
+    </p>
+
     <game-board
+      :class="{'hints': showHints }"
       :board="myBoard"
       :attacks="myAttacks" />
   </div>
@@ -51,6 +57,7 @@ export default {
     return {
       impossibleTurns: 0,
       gameStopped: false,
+      showHints: false,
     };
   },
   components: {
@@ -78,6 +85,8 @@ export default {
       this.initGame();
       const list = this.listValidMoves(this.myBoard, this.player);
       this.updateAttacks(list.validMoves);
+      this.impossibleTurns = 0;
+      this.gameStopped = false;
     },
     pass() {
       this.nextPlayer();
@@ -195,6 +204,10 @@ body {
   text-transform: uppercase;
   text-align: center;
   white-space: nowrap;
+
+  &:hover {
+    background-color: rgba(100, 100, 100, 0.3);
+  }
 }
 
 .layer {

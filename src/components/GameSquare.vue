@@ -67,7 +67,7 @@ export default {
   }
 }
 
-.playable {
+.hints .playable {
   cursor: pointer;
 
   &::after {
