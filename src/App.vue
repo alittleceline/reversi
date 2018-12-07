@@ -96,7 +96,6 @@ export default {
       // only allow click on playable squares
       if (newAttacks[coord.y][coord.x] === PLAYABLE) {
         const attack = applyMove(board, player, coord);
-        console.log('applyMove', attack);
         this.updateBoard(attack);
         const next = this.player === P1 ? P2 : P1;
         // if valid moves are available, player can play, switch to next player's turn

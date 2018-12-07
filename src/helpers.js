@@ -69,12 +69,9 @@ const applyMove = (board, player, squareCoord) => {
         break;
       }
       const piece = board[y][x];
-      console.log('piece', piece);
       if (piece === EMPTY) {
         // Reset toFlip to just click coords
         toFlip = [{ y: squareCoord.y, x: squareCoord.x }];
-        console.log('toFlip empty', toFlip);
-        console.log('empty y', x);
         break;
       } else if (piece === opponent) {
         toFlip.push({ y, x });

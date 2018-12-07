@@ -6,5 +6,5 @@
   "rules": {
     "no-empty-source": null
   },
-  "ignoreFiles": ["**/*.js"],
+  "ignoreFiles": ["**/*.js", "**/*.md"],
 }
